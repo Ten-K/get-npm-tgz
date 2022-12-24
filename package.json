@@ -1,10 +1,10 @@
 {
   "name": "get-npm-tgz",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "download npm tgz",
   "main": "bin/www.js",
   "scripts": {
-    "dev": "pnpm build && cd play && tgz",
+    "dev": "pnpm build && cd play",
     "build": "tsup"
   },
   "repository": {
@@ -38,6 +38,7 @@
     "tsup": "^6.5.0"
   },
   "dependencies": {
+    "cac": "^6.7.14",
     "request": "^2.88.2"
   }
 }

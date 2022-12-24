@@ -1,8 +1,10 @@
 import fs from 'fs'
 import url from 'url'
 import path from 'path'
+import { cac } from 'cac'
 import request from 'request'
 
+import { version } from '../package.json'
 import { packageData, dependenciesItem } from './types'
 
 /**
@@ -127,5 +129,13 @@ const start = () => {
 	})
 }
 
-/** 开始开始 */
-start()
+const cli = cac('tgz')
+cli.version(version)
+
+cli.command('', '批量下载tgz').action(async () => {
+	start()
+})
+
+cli.help()
+
+cli.parse()
