@@ -1,5 +1,5 @@
 {
-  "name": "download-npm-tgz",
+  "name": "get-npm-tgz",
   "version": "1.0.0",
   "description": "download npm tgz",
   "main": "bin/www.js",
