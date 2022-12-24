@@ -1,0 +1,43 @@
+{
+  "name": "download-npm-tgz",
+  "version": "1.0.0",
+  "description": "download npm tgz",
+  "main": "bin/www.js",
+  "scripts": {
+    "dev": "pnpm build && cd play && tgz",
+    "build": "tsup"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ten-K/download-npm-tgz.git"
+  },
+  "keywords": [
+    "download-npm-tgz",
+    "tgz",
+    "npm"
+  ],
+  "author": {
+    "name": "Ten-K",
+    "email": "742798240@qq.com"
+  },
+  "license": "MIT",
+  "bin": {
+    "tgz": "bin/www.js"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "bugs": {
+    "url": "https://github.com/Ten-K/download-npm-tgz/issues"
+  },
+  "homepage": "https://github.com/Ten-K/download-npm-tgz#readme",
+  "devDependencies": {
+    "@types/node": "^18.11.17",
+    "@types/request": "^2.48.8",
+    "tsup": "^6.5.0"
+  },
+  "dependencies": {
+    "request": "^2.88.2"
+  }
+}
