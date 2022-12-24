@@ -1,6 +1,6 @@
 {
   "name": "get-npm-tgz",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "download npm tgz",
   "main": "bin/www.js",
   "scripts": {
@@ -9,12 +9,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ten-K/download-npm-tgz.git"
+    "url": "git+https://github.com/Ten-K/get-npm-tgz.git"
   },
   "keywords": [
-    "download-npm-tgz",
+    "get-npm-tgz",
     "tgz",
-    "npm"
+    "download"
   ],
   "author": {
     "name": "Ten-K",
@@ -29,9 +29,9 @@
     "bin"
   ],
   "bugs": {
-    "url": "https://github.com/Ten-K/download-npm-tgz/issues"
+    "url": "https://github.com/Ten-K/get-npm-tgz/issues"
   },
-  "homepage": "https://github.com/Ten-K/download-npm-tgz#readme",
+  "homepage": "https://github.com/Ten-K/get-npm-tgz#readme",
   "devDependencies": {
     "@types/node": "^18.11.17",
     "@types/request": "^2.48.8",
