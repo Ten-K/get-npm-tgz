@@ -6,6 +6,24 @@ import request from 'request'
 
 import { version } from '../package.json'
 import { packageData, dependenciesItem } from './types'
+import { REGISTER } from './constans'
+
+/**
+ * 获取源地址
+ * @param options 命令行参数
+ */
+const getRegistry = (options: any) => {
+	if (options.c) {
+		return REGISTER.CNPM
+	}
+	if (options.y) {
+		return REGISTER.YARN
+	}
+	if (options.t) {
+		return REGISTER.TAOBAO
+	}
+	return REGISTER.NPM
+}
 
 /**
  * 获取文件路径
@@ -106,6 +124,19 @@ const downloadTgz = () => {
 	})
 }
 
+const downloadHandle = () => {
+	/** 删除tgz文件夹 */
+	const tgzDirectoryPath = getFilePath('tgz')
+	delDirectory(tgzDirectoryPath)
+	/** 删除error文件 */
+	const errFilePath = getFilePath('error.txt')
+	delFile(errFilePath)
+	/** 创建tgz文件夹 */
+	createDirectory(tgzDirectoryPath)
+	/** 下载tgz包 */
+	downloadTgz()
+}
+
 const packageLockPath = getFilePath('package-lock.json')
 const viewList: Array<string> = []
 
@@ -115,27 +146,35 @@ const start = () => {
 
 		const { dependencies } = JSON.parse(data) as packageData
 		pushResolved(dependencies)
-
-		/** 删除tgz文件夹 */
-		const tgzDirectoryPath = getFilePath('tgz')
-		delDirectory(tgzDirectoryPath)
-		/** 删除error文件 */
-		const errFilePath = getFilePath('error.txt')
-		delFile(errFilePath)
-		/** 创建tgz文件夹 */
-		createDirectory(tgzDirectoryPath)
-		/** 下载tgz包 */
-		downloadTgz()
+    downloadHandle()
 	})
 }
 
 const cli = cac('tgz')
 cli.version(version)
 
-cli.command('', '批量下载tgz').action(async () => {
-	start()
-})
+cli.command('[...pkgs]', '批量下载tgz')
+	.option('-n, --npm', '使用npm源下载')
+	.option('-c, --cnpm', '使用cnpm源下载')
+	.option('-y, --yarn', '使用yarn源下载')
+	.option('-t, --taobao', '使用taobao源下载')
+	.action(async (pkgs, options) => {
+		const pkgsLength = pkgs.length
+		/** 没有指定下载包，默认查询<package-lock.json>文件下载所有依赖tgz包 */
+		if (!pkgsLength) {
+			return start()
+		}
+		for (const pkg of pkgs) {
+			const [name, version] = pkg.split('@')
+			if (!version) return console.log(`请指定【${name}】的版本号`)
+			const registry = getRegistry(options)
+			const url = `${registry}${name}/-/${name}-${version}.tgz`
+			viewList.push(url)
+		}
+		if (viewList.length !== pkgsLength) return
+		downloadHandle()
+	})
 
 cli.help()
 
-cli.parse()
+const parsed = cli.parse()
