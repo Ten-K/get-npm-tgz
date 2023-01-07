@@ -1,6 +1,6 @@
 {
   "name": "get-npm-tgz",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "download npm tgz",
   "main": "bin/www.js",
   "scripts": {
