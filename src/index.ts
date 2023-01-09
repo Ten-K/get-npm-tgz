@@ -1,12 +1,12 @@
-import fs from 'fs'
-import url from 'url'
-import path from 'path'
+import fs from 'node:fs'
 import { cac } from 'cac'
+import url from 'node:url'
+import path from 'node:path'
 import request from 'request'
 
+import { REGISTER } from './constans'
 import { version } from '../package.json'
 import { packageData, dependenciesItem } from './types'
-import { REGISTER } from './constans'
 
 /**
  * 获取源地址
@@ -146,7 +146,7 @@ const start = () => {
 
 		const { dependencies } = JSON.parse(data) as packageData
 		pushResolved(dependencies)
-    downloadHandle()
+		downloadHandle()
 	})
 }
 

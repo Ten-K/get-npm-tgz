@@ -3,6 +3,9 @@
   "version": "1.0.3",
   "description": "download npm tgz",
   "main": "bin/www.js",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
     "dev": "pnpm build && cd play",
     "build": "tsup"
@@ -28,6 +31,7 @@
     "dist",
     "bin"
   ],
+  "packageManager": "pnpm@7.22.0",
   "bugs": {
     "url": "https://github.com/Ten-K/get-npm-tgz/issues"
   },
