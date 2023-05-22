@@ -4,7 +4,7 @@
   "description": "download npm tgz",
   "main": "bin/www.js",
   "scripts": {
-    "dev": "pnpm build && cd play",
+    "dev": "pnpm build && cd play && tgz",
     "build": "tsup"
   },
   "repository": {

@@ -1,10 +1,17 @@
 export interface packageData {
 	name?: string
 	version?: string
+	dependencies?: object
+  devDependencies?: object
+}
+
+export interface packageLockData {
+	name?: string
+	version?: string
 	lockfileVersion?: number
 	requires?: boolean
-	packages?: object
-	dependencies: object
+	packages: object
+	dependencies?: object
 }
 
 export interface dependenciesItem {
