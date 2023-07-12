@@ -1,6 +1,6 @@
 # get-npm-tgz
 
-对于大多数内网开发人员来说，不能直接从npm下载依赖是很痛苦的，所以搭建内网npm私服是很有必要的。这个时候就需要下载大量npm的`tgz`包上传到npm私服，所以`get-npm-tgz`就出现了
+对于大多数内网开发人员来说，不能直接从npm下载依赖是很痛苦的，所以搭建内网npm私服是很有必要的。这个时候就需要下载大量npm的`tgz`包上传到npm私服，所以`get-npm-tgz`就出现了。搭建内网可参考文章[Linux安装Nexus3搭建Npm私服](https://tenk-notebook.netlify.app/article/article/%E6%90%AD%E5%BB%BAnpm%E7%A7%81%E6%9C%8D.html)
 
 ## 📦 安装
 
