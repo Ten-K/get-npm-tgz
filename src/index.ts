@@ -195,7 +195,7 @@ const readPackageLockJson = () => {
 		if (err) console.error("读取 package-lock.json 文件错误", err.message);
 		const { packages } = JSON.parse(data) as packageLockData;
     if(!packages) {
-      throw new Error("npm依赖字段有变动，请联系作者。如需正常使用，请使用9..8.1版本的npm")
+      throw new Error("npm依赖字段有变动，请联系作者。如需正常使用，请使用9.8.1版本的npm")
     }
 		pushResolved(packages);
 		downloadHandle();
