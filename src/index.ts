@@ -124,7 +124,8 @@ const getDependenciesForPackageName = (packages: object, registry: string) => {
 		request(url, function (error, response, body) {
 			if (error) return console.log(error);
 			const packageInfo = JSON.parse(body);
-
+      
+      //TODO 这种情况的版本号未处理 ">= 0.12 < 0.13" - tgz package.json 命令不可用 (semver库待研究)
 			if (version.charAt(0) === "*") {
 				version = packageInfo["dist-tags"].latest;
 			} else if (version.charAt(0) === "^" || version.charAt(0) === "~") {

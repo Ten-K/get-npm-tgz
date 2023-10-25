@@ -2,6 +2,10 @@
   "name": "get-npm-tgz",
   "version": "1.0.5",
   "description": "download npm tgz",
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "packageManager": "pnpm@8.9.2",
   "main": "bin/www.js",
   "scripts": {
     "dev": "pnpm build && cd play && tgz",
