@@ -124,8 +124,8 @@ const getDependenciesForPackageName = (packages: object, registry: string) => {
 		request(url, function (error, response, body) {
 			if (error) return console.log(error);
 			const packageInfo = JSON.parse(body);
-      
-      //TODO 这种情况的版本号未处理 ">= 0.12 < 0.13" - tgz package.json 命令不可用 (semver库待研究)
+
+			//TODO 这种情况的版本号未处理 ">= 0.12 < 0.13" - tgz package.json 命令不可用 (semver库待研究)
 			if (version.charAt(0) === "*") {
 				version = packageInfo["dist-tags"].latest;
 			} else if (version.charAt(0) === "^" || version.charAt(0) === "~") {
@@ -193,11 +193,13 @@ const readPackageLockJson = () => {
 	const packageLockPath = getFilePath("package-lock.json");
 	fs.readFile(packageLockPath, "utf-8", (err, data) => {
 		if (err) console.error("读取 package-lock.json 文件错误", err.message);
-		const { packages } = JSON.parse(data) as packageLockData;
-    if(!packages) {
-      throw new Error("npm依赖字段有变动，请联系作者。如需正常使用，请使用9.8.1版本的npm")
-    }
-		pushResolved(packages);
+		const { packages, dependencies } = JSON.parse(data) as packageLockData;
+		if (!packages && !dependencies) {
+			throw new Error(
+				"npm依赖字段有变动，请联系作者。如需正常使用，请使用9.8.1版本的npm"
+			);
+		}
+		pushResolved(packages || dependencies);
 		downloadHandle();
 	});
 };
