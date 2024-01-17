@@ -39,7 +39,7 @@
   "devDependencies": {
     "@types/node": "^18.19.7",
     "@types/request": "^2.48.12",
-    "tsup": "^7.2.0"
+    "tsup": "^8.0.0"
   },
   "dependencies": {
     "cac": "^6.7.14",
