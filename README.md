@@ -38,5 +38,7 @@
 ## ⚠️ 注意
 
 - 指定下载包时需要指定版本号
-- 不指定下载包时根目录必须存在 **package-lock.json**
-- 目前只支持项目使用npm下载的依赖（即根目录存在 **package-lock.json** ），如果使用pnpm、yarn等请使用转化工具转换出 **package-lock.json** ，或重新使用npm下载依赖
+- 不指定下载包时根目录必须存在 `package-lock.json`
+- 目前只支持项目使用npm下载的依赖（即根目录存在 `package-lock.json` ），如果使用pnpm、yarn等请使用转化工具转换出 `package-lock.json` ，或重新使用npm下载依赖
+- [synp](https://github.com/imsnif/synp)：将 `yarn.lock` 转化为 `package-lock.json`
+- [pnpm-lock-to-npm-lock](https://github.com/jakedoublev/pnpm-lock-to-npm-lock)：将 `pnpm-lock.yaml` 转化为 `package-lock.json`
