@@ -37,6 +37,7 @@
 
 ## ⚠️ 注意
 
+- 低版本的npm支持有限，建议使用npm@9.8.1及以上版本
 - 指定下载包时需要指定版本号
 - 不指定下载包时根目录必须存在 `package-lock.json`
 - 目前只支持项目使用npm下载的依赖（即根目录存在 `package-lock.json` ），如果使用pnpm、yarn等请使用转化工具转换出 `package-lock.json` ，或重新使用npm下载依赖
