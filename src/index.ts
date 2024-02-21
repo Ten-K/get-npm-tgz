@@ -43,9 +43,12 @@ const pushResolved = (data: object) => {
 	if (!data) return;
 	Object.keys(data).forEach((item: string) => {
 		if (!item.length) return;
-		viewList.push(
-			(data[item as keyof typeof data] as dependenciesItem).resolved
-		);
+		const obj = data[item as keyof typeof data] as dependenciesItem;
+		if (obj.resolved) {
+			viewList.push(obj.resolved);
+		} else {
+			console.log(`【${item}】未提供下载地址, 请自行下载`);
+		}
 	});
 };
 
@@ -238,4 +241,4 @@ cli
 
 cli.help();
 
-const parsed = cli.parse();
+cli.parse();
