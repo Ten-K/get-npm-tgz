@@ -3,6 +3,7 @@ export interface packageData {
 	version?: string
 	dependencies?: object
   devDependencies?: object
+  peerDependencies?: object
 }
 
 export interface packageLockData {
