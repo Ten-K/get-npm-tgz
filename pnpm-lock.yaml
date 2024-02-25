@@ -30,7 +30,7 @@ devDependencies:
     version: 4.1.51
   '@types/semver':
     specifier: ^7.5.7
-    version: 7.5.7
+    version: 7.5.8
   tsup:
     specifier: ^7.2.0
     version: 7.2.0
@@ -335,8 +335,8 @@ packages:
       form-data: 2.5.1
     dev: true
 
-  /@types/semver@7.5.7:
-    resolution: {integrity: sha512-/wdoPq1QqkSj9/QOeKkFquEuPzQbHTWAMPH/PaUMB+JuR31lXhlWXRZ52IpfDYVlDOUBvX09uBrPwxGT1hjNBg==}
+  /@types/semver@7.5.8:
+    resolution: {integrity: sha512-I8EUhyrgfLrcTkzV3TSsGyl1tSuPrEDzr0yd5m90UgNxQkyDXULk3b6MlQqTCpZpNtWe1K0hzclnZkTcLBe2UQ==}
     dev: true
 
   /@types/tough-cookie@4.0.5:
