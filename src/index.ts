@@ -47,7 +47,7 @@ const getTgzDownloadUrl = (fliename: string, version: string) => {
 	if (fliename.includes("@")) {
 		name = fliename.split("/")[1];
 	}
-	return `https://registry.npmmirror.com/${fliename}/-/${name}-${version}.tgz`;
+	return `${REGISTER.TAOBAO}${fliename}/-/${name}-${version}.tgz`;
 };
 
 /**
@@ -122,7 +122,7 @@ const pushResolved = (data: object) => {
 				} else {
 					try {
 						const res = await rp(
-							`https://registry.npmmirror.com/${peerDependenciesName}`
+							`${REGISTER.TAOBAO}${peerDependenciesName}`
 						);
 
 						const resData = JSON.parse(res);
@@ -135,7 +135,7 @@ const pushResolved = (data: object) => {
 						/**
 						 * 目前手动解决办法，生成 `peerDependencies.txt` ，新建一个 `package.json` 文件
 						 * 然后在 `package.json` 内将 `peerDependencies.txt` 的内容写入 `dependencies` （按实际需求去除重复的健，一般保留最高版本的依赖）
-						 * 执行 `npm i` 生成 `package-lock.json` ，然后再执行 `tgz` 进行`npm`离线包下载
+						 * 执行 `npm i` 生成 `package-lock.json` ，然后再执行 `tgz` 进行 `npm` 离线包下载
 						 */
 						// appendFileRecord(
 						// 	"peerDependencies.txt",
@@ -219,7 +219,10 @@ const getPackageJsonDependencies = async () => {
 /**
  * 根据依赖名称获取依赖的相关依赖
  */
-const getDependenciesForPackageName = (packages: object, registry: string) => {
+const getDependenciesForPackageName = (
+	packages: object,
+	registry = REGISTER.TAOBAO
+) => {
 	Reflect.ownKeys(packages).forEach((name) => {
 		const url = `${registry}${name as string}`;
 
