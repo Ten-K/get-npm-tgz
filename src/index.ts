@@ -152,7 +152,7 @@ const pushResolved = (data: object) => {
 							resolve(1);
 						}
 					} catch (error) {
-						console.log("🚀 ~ ]ofpeerDependenciesKeys.entries ~ error:", error);
+						console.log("🚀 ~ peerDependenciesKeys.entries ~ error:", error);
 					}
 				}
 			}
