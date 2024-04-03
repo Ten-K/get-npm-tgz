@@ -37,7 +37,7 @@
   },
   "homepage": "https://github.com/Ten-K/get-npm-tgz#readme",
   "devDependencies": {
-    "@types/node": "^18.19.28",
+    "@types/node": "^18.19.29",
     "@types/request": "^2.48.12",
     "@types/request-promise": "^4.1.51",
     "@types/semver": "^7.5.8",
