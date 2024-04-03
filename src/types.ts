@@ -22,3 +22,16 @@ export interface dependenciesItem {
 	requires?: object
 	[propsname: string]: any
 }
+
+export interface cmdOptions {
+  npm?: boolean;
+  cnpm?: boolean;
+  yarn?: boolean;
+  taobao?: boolean;
+  token?: string;
+  n?: boolean;
+  c?: boolean;
+  y?: boolean;
+  t?: boolean;
+  tk?: string;
+}

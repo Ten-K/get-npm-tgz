@@ -6,9 +6,19 @@ import { parse } from "node:url";
 import { join } from "node:path";
 import rp from "request-promise";
 
+import {
+	cmdOptions,
+	packageData,
+	packageLockData,
+	dependenciesItem
+} from "./types";
 import { REGISTER } from "./constans";
 import { version } from "../package.json";
-import { packageData, packageLockData, dependenciesItem } from "./types";
+
+/** 命令行参数 */
+let options: cmdOptions = {};
+/** 收集下载地址 */
+const viewList: Array<string> = [];
 
 /**
  * 获取源地址
@@ -121,9 +131,7 @@ const pushResolved = (data: object) => {
 					}
 				} else {
 					try {
-						const res = await rp(
-							`${REGISTER.TAOBAO}${peerDependenciesName}`
-						);
+						const res = await rp(`${REGISTER.TAOBAO}${peerDependenciesName}`);
 
 						const resData = JSON.parse(res);
 						const url = getTgzDownloadUrl(
@@ -257,20 +265,29 @@ const getDependenciesForPackageName = (
  * 下载tgz包
  */
 const downloadTgz = () => {
-	viewList.forEach((ele) => {
-		const path = parse(ele).path as string;
-		const writestream = fs.createWriteStream("./tgz/" + path.split("/-/")[1]);
-		const readstream = request(ele);
-		readstream.pipe(writestream);
-		readstream.on("error", function (err) {
-			console.log("错误信息:" + err);
-			appendFileRecord("error.txt", ele + "\n");
-		});
+	viewList.forEach((url) => {
+		const path = parse(url).path as string;
+		const fileName = path.split("/-/")[1];
+		const filePath = "./tgz/" + fileName;
 
-		writestream.on("finish", function () {
-			console.log(path.split("/-/")[1] + "文件写入成功");
-			writestream.end();
-		});
+		request(url)
+			.on("response", function (response) {
+				if (response.statusCode !== 200) {
+					console.log(`HTTP error! Status: ${response.statusCode} Url: ${url}`);
+					return;
+				}
+
+				const writestream = fs.createWriteStream(filePath);
+				response.pipe(writestream);
+				writestream.on("finish", function () {
+					console.log(fileName + "文件写入成功");
+					writestream.end();
+				});
+			})
+			.on("error", function (err) {
+				console.log("错误信息:" + err);
+				appendFileRecord("error.txt", url + "\n");
+			});
 	});
 };
 
@@ -289,8 +306,6 @@ const downloadHandle = () => {
 	/** 下载tgz包 */
 	downloadTgz();
 };
-
-const viewList: Array<string> = [];
 
 const readPackageLockJson = () => {
 	const packageLockPath = getFilePath("package-lock.json");
@@ -318,7 +333,9 @@ cli
 	.option("-c, --cnpm", "使用cnpm源下载")
 	.option("-y, --yarn", "使用yarn源下载")
 	.option("-t, --taobao", "使用taobao源下载")
+	.option("-tk, --token", "从需要认证的私服下载时，必须要有登录令牌")
 	.action(async (pkgs, options) => {
+		options = options || {};
 		const pkgsLength = pkgs.length;
 
 		/** 没有指定下载包，默认查询<package-lock.json>文件下载所有依赖tgz包 */
