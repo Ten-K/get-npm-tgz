@@ -7,7 +7,7 @@ import { join } from "node:path";
 import rp from "request-promise";
 
 import {
-	cmdOptions,
+	options,
 	packageData,
 	packageLockData,
 	dependenciesItem
@@ -16,7 +16,7 @@ import { REGISTER } from "./constans";
 import { version } from "../package.json";
 
 /** 命令行参数 */
-let options: cmdOptions = {};
+let cmdOptions: options = {};
 /** 收集下载地址 */
 const viewList: Array<string> = [];
 
@@ -24,7 +24,7 @@ const viewList: Array<string> = [];
  * 获取源地址
  * @param options 命令行参数
  */
-const getRegistry = (options: any) => {
+const getRegistry = (options: options) => {
 	if (options.c) {
 		return REGISTER.CNPM;
 	}
@@ -270,7 +270,11 @@ const downloadTgz = () => {
 		const fileName = path.split("/-/")[1];
 		const filePath = "./tgz/" + fileName;
 
-		request(url)
+    request.get(url, {
+      auth: cmdOptions.token ? {
+        bearer: cmdOptions.token
+      } : {}
+    })
 			.on("response", function (response) {
 				if (response.statusCode !== 200) {
 					console.log(`HTTP error! Status: ${response.statusCode} Url: ${url}`);
@@ -280,12 +284,12 @@ const downloadTgz = () => {
 				const writestream = fs.createWriteStream(filePath);
 				response.pipe(writestream);
 				writestream.on("finish", function () {
-					console.log(fileName + "文件写入成功");
+          console.log(`${fileName} 文件写入成功`);
 					writestream.end();
 				});
 			})
 			.on("error", function (err) {
-				console.log("错误信息:" + err);
+        console.log(`错误信息: ${err}`);
 				appendFileRecord("error.txt", url + "\n");
 			});
 	});
@@ -333,9 +337,9 @@ cli
 	.option("-c, --cnpm", "使用cnpm源下载")
 	.option("-y, --yarn", "使用yarn源下载")
 	.option("-t, --taobao", "使用taobao源下载")
-	.option("-tk, --token", "从需要认证的私服下载时，必须要有登录令牌")
-	.action(async (pkgs, options) => {
-		options = options || {};
+	.option("-k , --token <token>", "从需要认证的私服下载时，必须要有登录令牌")
+	.action(async (pkgs: string[], options: options) => {
+		cmdOptions = options || {};
 		const pkgsLength = pkgs.length;
 
 		/** 没有指定下载包，默认查询<package-lock.json>文件下载所有依赖tgz包 */
