@@ -23,7 +23,7 @@ export interface dependenciesItem {
 	[propsname: string]: any
 }
 
-export interface cmdOptions {
+export interface options {
   npm?: boolean;
   cnpm?: boolean;
   yarn?: boolean;
