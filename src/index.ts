@@ -270,11 +270,28 @@ const downloadTgz = () => {
 		const fileName = path.split("/-/")[1];
 		const filePath = "./tgz/" + fileName;
 
-    request.get(url, {
-      auth: cmdOptions.token ? {
-        bearer: cmdOptions.token
-      } : {}
-    })
+		/**
+		 * 通常情况下，可以将用户名和密码以Base64编码的形式作为token进行认证。
+     * 这种方式通常被称为Basic Authentication。
+     * 在HTTP请求的Authorization头中，将用户名和密码以username:password的形式拼接起来，
+     * 然后进行Base64编码，最后在前面加上Basic 前缀即可。
+     * 可以用以下代码生成token
+     * Buffer.from(`${username}:${password}`).toString('base64');
+     * 
+     * 这里让用户直接传入token
+		 */
+		const headers = cmdOptions?.token
+			? {
+					Authorization: `Basic ${cmdOptions?.token}`
+			  }
+			: {};
+		const requestOptions = {
+			url,
+			headers
+		};
+
+		request
+			.get(requestOptions)
 			.on("response", function (response) {
 				if (response.statusCode !== 200) {
 					console.log(`HTTP error! Status: ${response.statusCode} Url: ${url}`);
@@ -284,12 +301,12 @@ const downloadTgz = () => {
 				const writestream = fs.createWriteStream(filePath);
 				response.pipe(writestream);
 				writestream.on("finish", function () {
-          console.log(`${fileName} 文件写入成功`);
+					console.log(`${fileName} 文件写入成功`);
 					writestream.end();
 				});
 			})
 			.on("error", function (err) {
-        console.log(`错误信息: ${err}`);
+				console.log(`错误信息: ${err}`);
 				appendFileRecord("error.txt", url + "\n");
 			});
 	});
