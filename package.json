@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "description": "download npm tgz",
   "engines": {
-    "node": ">=18.18.0"
+    "node": ">=22.0.0"
   },
   "packageManager": "pnpm@9.1.4",
   "main": "bin/www.js",
@@ -37,7 +37,7 @@
   },
   "homepage": "https://github.com/Ten-K/get-npm-tgz#readme",
   "devDependencies": {
-    "@types/node": "^18.19.31",
+    "@types/node": "^18.19.33",
     "@types/request": "^2.48.12",
     "@types/request-promise": "^4.1.51",
     "@types/semver": "^7.5.8",
@@ -47,6 +47,6 @@
     "cac": "^6.7.14",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
-    "semver": "^7.6.0"
+    "semver": "^7.6.2"
   }
 }
