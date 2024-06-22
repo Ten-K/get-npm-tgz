@@ -38,7 +38,7 @@
 - 执行完命令后会在根目录生成一个 `tgz` 文件夹，里面存放的就是 `package` 对应的 `tgz` 包
 - 下载失败的包会在 `error.txt` 文件记录
 - 如果下载失败的包不是很多，建议手动重新下载一下失败的包
-- [获取 token 的方式](https://github.com/Ten-K/get-npm-tgz/blob/4300fd4b75256e5974787c2ff00d9e9716648e51/src/index.ts#L279C7-L279C66)
+- [获取 token 的方式](https://github.com/Ten-K/get-npm-tgz/blob/3ad7c3faeafef4e6b30c829eb8108cead90ec048/src/utils.ts#L130)
 
 ## ⚠️ 注意
 
