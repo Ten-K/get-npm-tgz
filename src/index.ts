@@ -1,207 +1,99 @@
 import fs from "node:fs";
 import { cac } from "cac";
-import request from "request";
+import axios from "axios";
 import { coerce } from "semver";
-import { parse } from "node:url";
-import { join } from "node:path";
-import rp from "request-promise";
-
-import {
-	options,
-	packageData,
-	packageLockData,
-	dependenciesItem
-} from "./types";
-import { REGISTER } from "./constans";
 import { version } from "../package.json";
+import { REGISTER, MAX_CONCURRENT_REQUESTS } from "./constans";
+import { Options, ResData, PackageData, DependenciesItem } from "./types";
+import {
+	delFile,
+	parseURL,
+	getRegistry,
+	getFilePath,
+	delDirectory,
+	downloadFile,
+	createDirectory,
+	getTgzDownloadUrl,
+	readAndParsePackageLockJson
+} from "./utils";
 
 /** 命令行参数 */
-let cmdOptions: options = {};
+let cmdOptions: Options = {};
 /** 收集下载地址 */
 const viewList: Array<string> = [];
-
-/**
- * 获取源地址
- * @param options 命令行参数
- */
-const getRegistry = (options: options) => {
-	if (options.c) {
-		return REGISTER.CNPM;
-	}
-	if (options.y) {
-		return REGISTER.YARN;
-	}
-	if (options.t) {
-		return REGISTER.TAOBAO;
-	}
-	return REGISTER.NPM;
-};
-
-/**
- * 获取文件路径
- * @param fliename 文件名
- * @returns
- */
-const getFilePath = (fliename: string) => {
-	return join(process.cwd(), fliename);
-};
-
-/**
- * 获取npm包的tgz下载地址
- * @param fliename npm包名
- * @param version npm包版本号
- * @returns
- */
-const getTgzDownloadUrl = (fliename: string, version: string) => {
-	let name = fliename;
-	if (fliename.includes("@")) {
-		name = fliename.split("/")[1];
-	}
-	return `${REGISTER.TAOBAO}${fliename}/-/${name}-${version}.tgz`;
-};
-
-/**
- * 向文件追加内容
- * @param fliename 文件名
- * @param content 追加的文件内容
- */
-const appendFileRecord = (fliename: string, content: string) => {
-	fs.appendFile(fliename, content + "\n", "utf8", function (error) {
-		if (error) {
-			console.log(error);
-			return false;
-		}
-	});
-};
 
 /**
  * 收集npm离线包下载url
  * @param data 依赖对象
  * @returns
  */
-const pushResolved = (data: object) => {
+const pushResolved = (data: Record<string, any>) => {
 	return new Promise(async (resolve, reject) => {
-		if (!data) return;
+		if (!data) return resolve(undefined);
+
 		const dataArray = Object.keys(data);
 
-		for (const [OuterIndex, item] of dataArray.entries()) {
-			if (!item.length) continue;
-			const obj = data[item as keyof typeof data] as dependenciesItem;
+		const processDependency = async (key: string) => {
+			const obj: DependenciesItem = data[key];
+
 			if (obj.resolved) {
 				viewList.push(obj.resolved);
 			} else {
-				console.log(`【${item}】未提供下载地址, 请自行下载`);
+				if (key) console.log(`【${key}】未提供下载地址, 请自行下载`);
 			}
 
 			const peerDependencies = obj.peerDependencies;
-			if (!peerDependencies && OuterIndex === dataArray.length - 1) {
-				return resolve(1);
-			}
-			if (!peerDependencies) continue;
-			const peerDependenciesKeys = Object.keys(peerDependencies);
+			if (!peerDependencies) return;
 
-			for (const [
-				index,
-				peerDependenciesName
-			] of peerDependenciesKeys.entries()) {
-				if (!peerDependenciesName.length) continue;
-				const peerDependencyVersion = coerce(
-					peerDependencies[peerDependenciesName]
-				)?.raw;
-				if (peerDependencyVersion) {
-					const url = getTgzDownloadUrl(
-						peerDependenciesName,
-						peerDependencyVersion
-					);
-					if (viewList.indexOf(url) === -1) {
-						viewList.push(url);
-					}
-
-					// TODO 因为peerDependencies内的依赖还有依赖无法获取下载地址，暂时不做处理（待优化）
-					// appendFileRecord(
-					// 	"peerDependencies.txt",
-					// 	`"${peerDependenciesName}" : "${peerDependencyVersion}"`
-					// );
-
-					if (
-						index === peerDependenciesKeys.length - 1 &&
-						OuterIndex === dataArray.length - 1
-					) {
-						resolve(1);
-					}
-				} else {
-					try {
-						const res = await rp(`${REGISTER.TAOBAO}${peerDependenciesName}`);
-
-						const resData = JSON.parse(res);
+			const peerDependencyPromises = Object.keys(peerDependencies).map(
+				async (peerDependenciesName) => {
+					const peerDependencyVersion = coerce(
+						peerDependencies[peerDependenciesName]
+					)?.raw;
+					if (peerDependencyVersion) {
 						const url = getTgzDownloadUrl(
 							peerDependenciesName,
-							resData["dist-tags"].latest
+							peerDependencyVersion
 						);
-
-						// TODO 因为peerDependencies内的依赖还有依赖无法获取下载地址，暂时不做处理（待优化）
-						/**
-						 * 目前手动解决办法，生成 `peerDependencies.txt` ，新建一个 `package.json` 文件
-						 * 然后在 `package.json` 内将 `peerDependencies.txt` 的内容写入 `dependencies` （按实际需求去除重复的健，一般保留最高版本的依赖）
-						 * 执行 `npm i` 生成 `package-lock.json` ，然后再执行 `tgz` 进行 `npm` 离线包下载
-						 */
-						// appendFileRecord(
-						// 	"peerDependencies.txt",
-						// 	`"${peerDependenciesName}" : "${peerDependencyVersion}"`
-						// );
-
 						if (viewList.indexOf(url) === -1) {
 							viewList.push(url);
 						}
-						if (
-							index === peerDependenciesKeys.length - 1 &&
-							OuterIndex === dataArray.length - 1
-						) {
-							resolve(1);
+					} else {
+						try {
+							const response = await axios.get(
+								`${REGISTER.TAOBAO}${peerDependenciesName}`
+							);
+							const resData: ResData = response.data;
+							const url = getTgzDownloadUrl(
+								peerDependenciesName,
+								resData["dist-tags"].latest
+							);
+
+							if (viewList.indexOf(url) === -1) {
+								viewList.push(url);
+							}
+						} catch (error) {
+							console.log(`处理${peerDependenciesName}时发生错误:`, error);
 						}
-					} catch (error) {
-						console.log("🚀 ~ peerDependenciesKeys.entries ~ error:", error);
 					}
 				}
-			}
+			);
+
+			await Promise.all(peerDependencyPromises);
+		};
+
+		try {
+			await Promise.all(
+				dataArray.map(async (key) => {
+					await processDependency(key);
+				})
+			);
+
+			resolve(undefined);
+		} catch (error) {
+			reject(error);
 		}
 	});
-};
-
-/**
- * 删除文件夹
- * @param dir 文件夹路径
- */
-const delDirectory = (dir: string) => {
-	try {
-		if (!fs.existsSync(dir)) return;
-		fs.rmSync(dir, { recursive: true });
-		console.log("删除tgz文件夹成功");
-	} catch (err) {
-		console.error("tgz文件夹删除失败", err);
-	}
-};
-
-/**
- * 删除文件
- * @param file 文件路径
- */
-const delFile = (file: string) => {
-	fs.access(file, fs.constants.F_OK, (err) => {
-		if (err) return;
-		fs.unlinkSync(file);
-		console.log("error.txt文件删除成功");
-	});
-};
-
-/**
- * 创建文件夹
- * @param dir 文件夹路径
- */
-const createDirectory = (dir: string) => {
-	if (fs.existsSync(dir)) return console.log("tgz文件夹已存在");
-	fs.mkdirSync(dir);
-	console.log("tgz文件夹创建成功");
 };
 
 /**
@@ -215,7 +107,7 @@ const getPackageJsonDependencies = async () => {
 		dependencies = {},
 		devDependencies = {},
 		peerDependencies = {}
-	} = JSON.parse(data) as packageData;
+	} = JSON.parse(data) as PackageData;
 	const obj = {
 		...dependencies,
 		...devDependencies,
@@ -227,89 +119,72 @@ const getPackageJsonDependencies = async () => {
 /**
  * 根据依赖名称获取依赖的相关依赖
  */
-const getDependenciesForPackageName = (
-	packages: object,
+const getDependenciesForPackageName = async (
+	allDependencies: Record<string, string>,
 	registry = REGISTER.TAOBAO
-) => {
-	Reflect.ownKeys(packages).forEach((name) => {
-		const url = `${registry}${name as string}`;
+): Promise<void> => {
+	const viewList: string[] = [];
 
-		// @ts-ignore
-		let version = packages[name];
-		request(url, function (error, response, body) {
-			if (error) return console.log(error);
-			const packageInfo = JSON.parse(body);
-
-			// @ts-ignore
-			version = coerce(packages[name])?.raw;
-			if (!version) {
-				version = packageInfo["dist-tags"].latest;
+	const fetchPackageInfo = async (name: string, version: string) => {
+		try {
+			const url = `${registry}${encodeURIComponent(name)}`;
+			const res = await axios.get(url);
+			let v = coerce(version)?.raw;
+			if (!v) {
+				v = res.data["dist-tags"].latest;
 			}
 
-			const url = `${registry}${name as string}/-/${
-				name as string
-			}-${version}.tgz`;
+			const u = `${registry}${encodeURIComponent(name)}/-/${encodeURIComponent(
+				name
+			)}-${v}.tgz`;
 			viewList.push(url);
-			const packageJSON = packageInfo.versions[version];
-			const obj = Object.assign(
-				packageJSON?.dependencies || {},
-				packageJSON?.devDependencies || {},
-				packageJSON?.peerDependencies || {}
+
+			const packageJSON = res.data.versions[v as string];
+			const dependencies = {
+				...(packageJSON?.dependencies || {}),
+				...(packageJSON?.devDependencies || {}),
+				...(packageJSON?.peerDependencies || {})
+			};
+
+			for (const [name, version] of Object.entries(dependencies)) {
+				await fetchPackageInfo(name, version as string);
+			}
+		} catch (error) {
+			console.error(
+				`Error fetching or processing package info for ${name}:`,
+				error
 			);
-			getDependenciesForPackageName(obj, registry);
-		});
-	});
+		}
+	};
+
+	for (const [name, version] of Object.entries(allDependencies)) {
+		await fetchPackageInfo(name, version);
+	}
 };
 
-/**
- * 下载tgz包
- */
-const downloadTgz = () => {
-	viewList.forEach((url) => {
-		const path = parse(url).path as string;
-		const fileName = path.split("/-/")[1];
-		const filePath = "./tgz/" + fileName;
+const downloadTgz = async () => {
+	if (!viewList.length) {
+		console.log("viewList为空，没有文件需要下载");
+		return;
+	}
 
-		/**
-		 * 通常情况下，可以将用户名和密码以Base64编码的形式作为token进行认证。
-     * 这种方式通常被称为Basic Authentication。
-     * 在HTTP请求的Authorization头中，将用户名和密码以username:password的形式拼接起来，
-     * 然后进行Base64编码，最后在前面加上Basic 前缀即可。
-     * 可以用以下代码生成token
-     * Buffer.from(`${username}:${password}`).toString('base64');
-     * 
-     * 这里让用户直接传入token
-		 */
-		const headers = cmdOptions?.token
-			? {
-					Authorization: `Basic ${cmdOptions?.token}`
-			  }
-			: {};
-		const requestOptions = {
-			url,
-			headers
-		};
+	// 存储待执行的Promise函数数组
+	const downloadPromises = [];
+	// 命令行参数传入的token
+	const token = cmdOptions?.token;
+	// 解析URL并生成文件名
+	const urlsToDownload = viewList.map(parseURL);
 
-		request
-			.get(requestOptions)
-			.on("response", function (response) {
-				if (response.statusCode !== 200) {
-					console.log(`HTTP error! Status: ${response.statusCode} Url: ${url}`);
-					return;
-				}
+	// 控制并发下载数量
+	for (const { url, fileName } of urlsToDownload) {
+		if (downloadPromises.length >= MAX_CONCURRENT_REQUESTS) {
+			await Promise.all(downloadPromises);
+			downloadPromises.length = 0; // 清空已处理的请求
+		}
+		downloadPromises.push(downloadFile(url, fileName, token));
+	}
 
-				const writestream = fs.createWriteStream(filePath);
-				response.pipe(writestream);
-				writestream.on("finish", function () {
-					console.log(`${fileName} 文件写入成功`);
-					writestream.end();
-				});
-			})
-			.on("error", function (err) {
-				console.log(`错误信息: ${err}`);
-				appendFileRecord("error.txt", url + "\n");
-			});
-	});
+	await Promise.all(downloadPromises);
 };
 
 const downloadHandle = () => {
@@ -328,21 +203,20 @@ const downloadHandle = () => {
 	downloadTgz();
 };
 
-const readPackageLockJson = () => {
-	const packageLockPath = getFilePath("package-lock.json");
-	fs.readFile(packageLockPath, "utf-8", async (err, data) => {
-		if (err) console.error("读取 package-lock.json 文件错误", err.message);
-		const { packages, dependencies } = JSON.parse(data) as packageLockData;
-		if (!packages && !dependencies) {
-			throw new Error(
-				"npm依赖字段有变动，请联系作者。如需正常使用，请使用9.8.1版本的npm"
-			);
-		}
-
+/**
+ * 读取并处理package-lock.json文件。
+ */
+const readPackageLockJson = async () => {
+	try {
 		console.log("正在准备下载tgz包, 请耐心等待...");
-		await pushResolved(packages || dependencies);
+		const packageLockData = await readAndParsePackageLockJson();
+		await pushResolved(
+			packageLockData.packages || packageLockData.dependencies
+		);
 		downloadHandle();
-	});
+	} catch (error) {
+		throw new Error(`处理 package-lock.json 数据时发生错误: ${error}`);
+	}
 };
 
 const cli = cac("tgz");
@@ -355,21 +229,18 @@ cli
 	.option("-y, --yarn", "使用yarn源下载")
 	.option("-t, --taobao", "使用taobao源下载")
 	.option("-k , --token <token>", "从需要认证的私服下载时，必须要有登录令牌")
-	.action(async (pkgs: string[], options: options) => {
+	.action(async (pkgs: string[], options: Options) => {
 		cmdOptions = options || {};
 		const pkgsLength = pkgs.length;
 
 		/** 没有指定下载包，默认查询<package-lock.json>文件下载所有依赖tgz包 */
-		if (!pkgsLength) {
-			return readPackageLockJson();
-		}
+		if (!pkgsLength) return readPackageLockJson();
 		const registry = getRegistry(options);
 		for (const pkg of pkgs) {
 			// TODO 支持package.json下载tgz
 			if (pkg === "package.json") {
-				const dependencies =
-					(await getPackageJsonDependencies()) as unknown as object;
-				getDependenciesForPackageName(dependencies, registry);
+				const allDependencies = await getPackageJsonDependencies();
+				getDependenciesForPackageName(allDependencies, registry);
 			} else {
 				const [name, version] = pkg.split("@");
 				if (!version) return console.log(`请指定【${name}】的版本号`);

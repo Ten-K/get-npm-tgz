@@ -1,52 +1,49 @@
 {
-  "name": "get-npm-tgz",
-  "version": "1.1.0",
-  "description": "download npm tgz",
-  "engines": {
-    "node": "18.18.0"
-  },
-  "packageManager": "pnpm@9.1.4",
-  "main": "bin/www.js",
-  "scripts": {
-    "dev": "pnpm build && cd play && tgz",
-    "build": "tsup"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Ten-K/get-npm-tgz.git"
-  },
-  "keywords": [
-    "get-npm-tgz",
-    "tgz",
-    "download"
-  ],
-  "author": {
-    "name": "Ten-K",
-    "email": "742798240@qq.com"
-  },
-  "license": "MIT",
-  "bin": {
-    "tgz": "bin/www.js"
-  },
-  "files": [
-    "dist",
-    "bin"
-  ],
-  "bugs": {
-    "url": "https://github.com/Ten-K/get-npm-tgz/issues"
-  },
-  "homepage": "https://github.com/Ten-K/get-npm-tgz#readme",
-  "devDependencies": {
-    "@types/node": "18.19.33",
-    "@types/request": "^2.48.12",
-    "@types/request-promise": "^4.1.51",
-    "@types/semver": "^7.5.8",
-    "tsup": "^7.2.0"
-  },
-  "dependencies": {
-    "cac": "^6.7.14",
-    "request": "^2.88.2",
-    "request-promise": "^4.2.6",
-    "semver": "^7.6.2"
-  }
+	"name": "get-npm-tgz",
+	"version": "1.1.0",
+	"description": "download npm tgz",
+	"engines": {
+		"node": "18.18.0"
+	},
+	"packageManager": "pnpm@9.1.4",
+	"main": "bin/www.js",
+	"scripts": {
+		"dev": "pnpm build && cd play && tgz",
+		"build": "tsup"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Ten-K/get-npm-tgz.git"
+	},
+	"keywords": [
+		"get-npm-tgz",
+		"tgz",
+		"download"
+	],
+	"author": {
+		"name": "Ten-K",
+		"email": "742798240@qq.com"
+	},
+	"license": "MIT",
+	"bin": {
+		"tgz": "bin/www.js"
+	},
+	"files": [
+		"dist",
+		"bin"
+	],
+	"bugs": {
+		"url": "https://github.com/Ten-K/get-npm-tgz/issues"
+	},
+	"homepage": "https://github.com/Ten-K/get-npm-tgz#readme",
+	"devDependencies": {
+		"@types/node": "18.19.33",
+		"@types/semver": "^7.5.8",
+		"tsup": "^7.2.0"
+	},
+	"dependencies": {
+		"axios": "^1.7.2",
+		"cac": "^6.7.14",
+		"semver": "^7.6.2"
+	}
 }
