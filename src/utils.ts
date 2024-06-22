@@ -122,9 +122,17 @@ export const parseURL = (url: string): { url: string; fileName: string } => {
  *
  * 从指定的URL下载文件，并将其保存到本地文件系统。如果提供了token，则会在请求头中添加Authorization字段。
  *
+ * 通常情况下，可以将用户名和密码以Base64编码的形式作为token进行认证。
+ * 这种方式通常被称为Basic Authentication。
+ * 在HTTP请求的Authorization头中，将用户名和密码以username:password的形式拼接起来，
+ * 然后进行Base64编码，最后在前面加上Basic 前缀即可。
+ * 可以用以下代码生成token
+ * 在node环境下执行 Buffer.from(`${username}:${password}`).toString('base64');
+ *
  * @param url 文件的下载地址
  * @param fileName 下载后文件的名称
  * @param token 可选的认证令牌，用于授权访问
+ *
  */
 export const downloadFile = async (
 	url: string,
