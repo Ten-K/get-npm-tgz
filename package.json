@@ -3,7 +3,8 @@
 	"version": "1.1.0",
 	"description": "download npm tgz",
 	"engines": {
-		"node": "18.18.0"
+		"node": "20.13.1",
+		"pnpm": "9.4.0"
 	},
 	"packageManager": "pnpm@9.1.4",
 	"main": "bin/www.js",
@@ -44,6 +45,6 @@
 	"dependencies": {
 		"axios": "^1.7.2",
 		"cac": "^6.7.14",
-		"semver": "^7.6.2"
+		"semver": "^7.6.3"
 	}
 }
