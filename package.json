@@ -5,7 +5,7 @@
 	"engines": {
 		"node": "20.13.1"
 	},
-	"packageManager": "pnpm@9.4.0",
+	"packageManager": "pnpm@9.7.0",
 	"main": "bin/www.js",
 	"scripts": {
 		"dev": "pnpm build && cd play && tgz",
