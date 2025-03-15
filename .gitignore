@@ -5,4 +5,5 @@ node_modules/
 #
 dist/
 tgz/
-play/
+play/node_modules
+play/tgz
