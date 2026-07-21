@@ -7,3 +7,4 @@ dist/
 tgz/
 play/node_modules
 play/tgz
+play/error.txt
