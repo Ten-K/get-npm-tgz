@@ -12,6 +12,7 @@ import {
 	DependencyMap
 } from "./types";
 import {
+	appendFileRecord,
 	buildTgzUrl,
 	delFile,
 	parseURL,
@@ -140,8 +141,11 @@ const collectRecursiveDependencies = async (
 		depth: number
 	): Promise<void> => {
 		if (depth > maxDepth) return;
-		if (visited.has(name)) return;
-		visited.add(name);
+
+		// 以 包名@版本 作为去重键，避免同一包多版本时漏收集嵌套依赖
+		const depKey = `${name}@${version}`;
+		if (visited.has(depKey)) return;
+		visited.add(depKey);
 
 		try {
 			const response = await axios.get(
@@ -197,24 +201,39 @@ const collectRecursiveDependencies = async (
 const downloadAll = async (
 	urls: Set<string>,
 	token?: string
-): Promise<void> => {
+): Promise<number> => {
 	if (urls.size === 0) {
 		console.log("没有需要下载的文件");
-		return;
+		return 0;
 	}
 
-	const entries = [...urls].map(parseURL);
-	let batch: Promise<void>[] = [];
+	const entries: { url: string; fileName: string }[] = [];
+	let failed = 0;
+	for (const url of urls) {
+		try {
+			entries.push(parseURL(url));
+		} catch (error) {
+			console.error(`无法解析下载地址，已跳过: ${url}`, error);
+			await appendFileRecord(getFilePath("error.txt"), url);
+			failed += 1;
+		}
+	}
+
+	let batch: Promise<boolean>[] = [];
 
 	for (const { url, fileName } of entries) {
 		if (batch.length >= MAX_CONCURRENT_REQUESTS) {
-			await Promise.all(batch);
+			const results = await Promise.all(batch);
+			failed += results.filter((result) => !result).length;
 			batch = [];
 		}
 		batch.push(downloadFile(url, fileName, token));
 	}
 
-	await Promise.all(batch);
+	const results = await Promise.all(batch);
+	failed += results.filter((result) => !result).length;
+
+	return failed;
 };
 
 /**
@@ -228,7 +247,7 @@ const downloadAll = async (
 const prepareAndDownload = async (
 	urls: Set<string>,
 	token?: string
-): Promise<void> => {
+): Promise<number> => {
 	const tgzDir = getFilePath("tgz");
 	const errFile = getFilePath("error.txt");
 
@@ -236,7 +255,7 @@ const prepareAndDownload = async (
 	delFile(errFile);
 	createDirectory(tgzDir);
 
-	await downloadAll(urls, token);
+	return downloadAll(urls, token);
 };
 
 // ============================================================
@@ -260,7 +279,11 @@ cli
 		// ---- 无参数：从 package-lock.json 下载所有依赖 ----
 		if (!pkgs || pkgs.length === 0) {
 			const urls = await processPackageLock(registry);
-			await prepareAndDownload(urls, token);
+			const failed = await prepareAndDownload(urls, token);
+			if (failed > 0) {
+				console.log(`下载完成，共 ${failed} 个包下载失败，详见 error.txt`);
+				process.exitCode = 1;
+			}
 			return;
 		}
 
@@ -275,7 +298,7 @@ cli
 				for (const url of urls) allUrls.add(url);
 			} else {
 				// 单个包：格式 "包名@版本号"
-				const atIndex = pkg.indexOf("@");
+				const atIndex = pkg.lastIndexOf("@");
 				if (atIndex <= 0) {
 					console.log(`请使用 "包名@版本号" 的格式指定包: ${pkg}`);
 					continue;
@@ -291,7 +314,11 @@ cli
 		}
 
 		if (allUrls.size > 0) {
-			await prepareAndDownload(allUrls, token);
+			const failed = await prepareAndDownload(allUrls, token);
+			if (failed > 0) {
+				console.log(`下载完成，共 ${failed} 个包下载失败，详见 error.txt`);
+				process.exitCode = 1;
+			}
 		}
 	});
 

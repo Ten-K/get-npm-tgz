@@ -2,8 +2,9 @@ import fs from "node:fs";
 import { appendFile } from "node:fs/promises";
 import axios from "axios";
 import { join } from "node:path";
+import type { Readable } from "node:stream";
 import { Options, PackageLockData } from "./types";
-import { REGISTRIES } from "./constants";
+import { DOWNLOAD_IDLE_TIMEOUT, REGISTRIES } from "./constants";
 
 // ============================================================
 // Registry 相关
@@ -49,7 +50,13 @@ export const buildTgzUrl = (
 	registry: string
 ): string => {
 	const encodedName = encodeURIComponent(name);
-	return `${registry}${encodedName}/-/${encodedName}-${version}.tgz`;
+	// npm tarball URL 中文件名部分不含 scope 前缀
+	// （如 @babel/helper-string-parser → helper-string-parser-7.24.8.tgz）
+	const basename = name.startsWith("@")
+		? name.slice(name.indexOf("/") + 1)
+		: name;
+	const encodedBase = encodeURIComponent(basename);
+	return `${registry}${encodedName}/-/${encodedBase}-${version}.tgz`;
 };
 
 /**
@@ -134,7 +141,7 @@ export const delFile = (filePath: string): void => {
 /** 记录下载失败信息到 error.txt */
 const recordDownloadError = async (url: string): Promise<void> => {
 	try {
-		await appendFileRecord("error.txt", url);
+		await appendFileRecord(getFilePath("error.txt"), url);
 	} catch (err) {
 		console.error(`写入错误记录失败: ${url}`, err);
 	}
@@ -156,38 +163,102 @@ export const downloadFile = async (
 	url: string,
 	fileName: string,
 	token?: string
-): Promise<void> => {
+): Promise<boolean> => {
 	try {
 		const response = await axios.get(url, {
 			responseType: "stream",
+			// 关闭 axios 默认的 2xx 校验，由下方显式判断，
+			// 以便统一销毁失败响应的流（未消费的流会让进程挂起）
+			validateStatus: () => true,
 			headers: token ? { Authorization: `Basic ${token}` } : {}
 		});
+
+		// 非 2xx 状态码：记录失败并销毁响应流，避免进程挂起
+		if (response.status < 200 || response.status >= 300) {
+			console.error(`${url} 下载失败，HTTP 状态码 ${response.status}`);
+			response.data?.destroy?.();
+			await recordDownloadError(url);
+			return false;
+		}
 
 		const filePath = `./tgz/${fileName}`;
 		const writeStream = fs.createWriteStream(filePath);
 
-		return new Promise<void>((resolve, reject) => {
+		return new Promise<boolean>((resolve) => {
+			// 源流出错/连接关闭时多个监听器都可能触发，
+			// 用 settled 标志保证只处理一次（避免 error.txt 重复记录）
+			let settled = false;
+			let sourceEnded = false;
+			let idleTimer: ReturnType<typeof setTimeout> | undefined;
+
+			const succeed = () => {
+				if (settled) return;
+				settled = true;
+				clearTimeout(idleTimer);
+				console.log(`${fileName} 下载完成`);
+				resolve(true);
+			};
+
+			const fail = async (err: Error, stage: string): Promise<void> => {
+				if (settled) return;
+				settled = true;
+				clearTimeout(idleTimer);
+				console.error(`${fileName} ${stage}:`, err);
+				// 停止源流与写流，释放底层连接，避免进程挂起
+				response.data?.destroy?.();
+				writeStream.destroy?.();
+				// 清理写入失败的半截文件
+				try {
+					fs.unlinkSync(filePath);
+				} catch {
+					// 文件不存在等场景忽略
+				}
+				await recordDownloadError(url);
+				resolve(false);
+			};
+
+			// 空闲超时兜底：半开连接/静默断流时流不会触发 error 或 finish。
+			// 不依赖流的 setTimeout/complete（压缩响应经 axios 解压后返回的
+			// Transform 流不具备这些方法），改为监听 data 事件重置计时器，
+			// 长时间无数据传输即视为断流强制失败，避免永久挂起
+			const armIdleTimer = () => {
+				clearTimeout(idleTimer);
+				idleTimer = setTimeout(() => {
+					fail(
+						new Error(
+							`下载超时：超过 ${DOWNLOAD_IDLE_TIMEOUT / 1000} 秒无数据传输`
+						),
+						"空闲超时"
+					);
+				}, DOWNLOAD_IDLE_TIMEOUT);
+			};
+			armIdleTimer();
+
 			response.data
 				.pipe(writeStream)
-				.on("finish", () => {
-					console.log(`${fileName} 下载完成`);
-					resolve();
-				})
-				.on("error", async (err: Error) => {
-					console.error(`${fileName} 写入错误:`, err);
-					await recordDownloadError(url);
-					reject(err);
-				});
-
-			writeStream.on("error", async (err: Error) => {
-				console.error(`${fileName} 写入流错误:`, err);
-				await recordDownloadError(url);
-				reject(err);
+				.on("finish", succeed)
+				.on("error", (err: Error) => fail(err, "读取错误"));
+			writeStream.on("error", (err: Error) => fail(err, "写入错误"));
+			// 兜底：部分环境连接中途关闭时只触发 close 而非 error。
+			// 以是否正常读完（end）判断是否断流，兼容任意流类型
+			response.data.on("data", armIdleTimer);
+			response.data.on("end", () => {
+				sourceEnded = true;
+			});
+			response.data.on("close", () => {
+				if (!settled && !sourceEnded) {
+					fail(new Error("连接中断，响应未完整接收"), "连接关闭");
+				}
 			});
 		});
 	} catch (error) {
 		console.error(`${url} 下载错误:`, error);
+		// 网络层错误时销毁可能残留的响应流，避免进程挂起
+		if (axios.isAxiosError(error) && error.response?.data) {
+			(error.response.data as Readable).destroy?.();
+		}
 		await recordDownloadError(url);
+		return false;
 	}
 };
 

@@ -14,3 +14,6 @@ export const REGISTRIES = {
 
 /** 并发下载请求限制数 */
 export const MAX_CONCURRENT_REQUESTS = 5;
+
+/** 下载空闲超时：超过该时长无任何数据传输则视为断流（毫秒） */
+export const DOWNLOAD_IDLE_TIMEOUT = 5 * 60 * 1000;
