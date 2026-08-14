@@ -13,8 +13,8 @@ pnpm build   # 通过 tsup 打包 src/ → dist/index.js（CJS、压缩）。dis
 pnpm dev     # pnpm build && cd play && tgz —— 先构建，再在 play/ 测试目录中运行 CLI
 ```
 
-- 包管理器为 **pnpm**（`packageManager: pnpm@10.5.2`，`.npmrc` 设置了 `manage-package-manager-versions=true`）。不要用 npm/yarn 安装依赖。
-- 需要 Node `>=18.12.0`（`.nvmrc` 固定 `22.14.0`）。
+- 包管理器为 **pnpm**（`packageManager: pnpm@11.21.0`，版本管理与构建脚本白名单配置在 `pnpm-workspace.yaml`）。不要用 npm/yarn 安装依赖。
+- 需要 Node `>=24.19.0`（`.nvmrc` 固定 `24.19.0`）。
 - **没有 lint 和测试配置**。可用 `npx tsc --noEmit` 做类型检查（tsconfig.json 为 `strict`）。
 - `commit.sh <msg>` 是一个便捷脚本：`git add . && commit && pull && push`。
 

@@ -1,0 +1,7 @@
+# pnpm 11 settings. v11 no longer reads these from package.json#pnpm or .npmrc.
+# - pmOnFail: download == previous `manage-package-manager-versions=true`
+# - allowBuilds: allowlist for packages permitted to run install scripts
+pmOnFail: download
+
+allowBuilds:
+  esbuild: true
