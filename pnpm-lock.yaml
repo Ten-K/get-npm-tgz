@@ -16,14 +16,14 @@ importers:
         version: 6.7.14
       semver:
         specifier: ^7.7.3
-        version: 7.7.3
+        version: 7.8.5
     devDependencies:
       '@types/node':
         specifier: 24.13.3
         version: 24.13.3
       '@types/semver':
         specifier: ^7.7.1
-        version: 7.7.1
+        version: 7.8.0
       tsup:
         specifier: ^8.5.0
         version: 8.5.0(typescript@5.9.3)
@@ -337,8 +337,8 @@ packages:
   '@types/node@24.13.3':
     resolution: {integrity: sha512-Dh8vAsV36ig5wa9OX4pXvMc9D3Veibfw2wix0CUwYODLD8nkj9UsLjASr49nPg+2eKzxhBV+v7L8pXvT4e639Q==}
 
-  '@types/semver@7.7.1':
-    resolution: {integrity: sha512-FmgJfu+MOcQ370SD0ev7EI8TlCAfKYU+B4m5T3yXc1CiRN94g/SZPtsCkk506aUDtlMnFZvasDwHHUcZUEaYuA==}
+  '@types/semver@7.8.0':
+    resolution: {integrity: sha512-1mAINjtQCXXeLkJ9ehXkwOcBpqtLxiVtKhpUf83DdRNdQKV0iXZpaHYqRr7nj+wvxuJzoAmAwXI+sCNMv1CzLQ==}
 
   acorn@8.15.0:
     resolution: {integrity: sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==}
@@ -666,8 +666,8 @@ packages:
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
-  semver@7.7.3:
-    resolution: {integrity: sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q==}
+  semver@7.8.5:
+    resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -960,7 +960,7 @@ snapshots:
     dependencies:
       undici-types: 7.18.2
 
-  '@types/semver@7.7.1': {}
+  '@types/semver@7.8.0': {}
 
   acorn@8.15.0: {}
 
@@ -1283,7 +1283,7 @@ snapshots:
       '@rollup/rollup-win32-x64-msvc': 4.52.5
       fsevents: 2.3.3
 
-  semver@7.7.3: {}
+  semver@7.8.5: {}
 
   shebang-command@2.0.0:
     dependencies:
